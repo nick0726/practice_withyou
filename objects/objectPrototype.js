@@ -3,7 +3,6 @@ class Object {
   constructor(name) {
     this.name = name; // 여기서 버튼의 이름을 들고와서 className으로 넣어줘도 괜찮을 듯
     this.$node = this.createObjectElement();
-    // this.addClickEvent();
     this.pushButtonESC();
     this.deleteObject();
     this.moveObject();
@@ -19,13 +18,6 @@ class Object {
   // * 다음의 내용들은 모든 Object의 공통사항들임
   // * 단, text의 경우 일반 Object와 다른 점이 있으니, 상속받아서 같은 이름에 다른 메서드를 달아서 바꿔주는 방향으로 가면 될것같다
   // * ex) 크기조절, 글씨체 등 조금 다른 경우가 있다.
-
-  // TODO : 선택했을때, 효과주기 -> 드래그할때 클릭하는 경우로 옮겨감
-  // addClickEvent() {
-  //   this.$node.onclick = (e) => {
-  //     e.target.classList.add("selected");
-  //   };
-  // }
 
   // TODO : 선택 취소 -> ESC 누르면 취소
   pushButtonESC() {
@@ -71,17 +63,20 @@ class Object {
 
     // ? Drag & Drop
     target.onmousedown = (e) => {
+      // TODO : 선택했을때, 효과주기
+      // ! 왜 클릭하면 내려감..?
+      e.target.classList.add("selected");
+      // 클릭한 위치를 고정적으로 유지
       let shiftX = e.clientX - target.getBoundingClientRect().left; // clientX : 이벤트가 발생한 곳의 수평좌표
       let shiftY = e.clientY - target.getBoundingClientRect().top;
       // e.getBoundingClientRect() : 뷰포트에 상대적인 위치에 대한 적보를 나타내는 객체를 반환
       // target.getBoundingClientRect() = {x: 296, y: 20, width: 100, height: 100, top: 20, …} -> 이런 형태임
-      // TODO : 선택했을때, 효과주기
-      e.target.classList.add("selected");
       target.style.position = "absolute";
       target.style.zIndex = 1000;
 
       editScreen.append(target);
 
+      // 클릭한 위치로부터 이동좌표를 나타내는 함수
       function moveAt(pageX, pageY) {
         target.style.left = pageX - shiftX + "px";
         target.style.top = pageY - shiftY + "px";
@@ -89,20 +84,26 @@ class Object {
 
       moveAt(e.pageX, e.pageY);
 
+      // 마우스 움직임에 따라서 좌표값 변환
       function onMouseMove(e) {
         moveAt(e.pageX, e.pageY);
       }
 
       editScreen.addEventListener("mousemove", onMouseMove);
 
+      // 클릭해제하면 이벤트 제거
       target.onmouseup = () => {
         editScreen.removeEventListener("mousemove", onMouseMove);
         target.onmouseup = null;
       };
+
+      // 마우스가 벗어나면 이벤트 제거
+      target.onmouseout = () => {
+        editScreen.removeEventListener("mousemove", onMouseMove);
+        target.onmouseout = null;
+      };
     };
-    target.ondragstart = function () {
-      return false;
-    };
+    target.ondragstart = () => false;
   }
 
   render() {
