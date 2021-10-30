@@ -3,9 +3,10 @@ class Object {
   constructor(name) {
     this.name = name; // 여기서 버튼의 이름을 들고와서 className으로 넣어줘도 괜찮을 듯
     this.$node = this.createObjectElement();
-    this.addClickEvent();
+    // this.addClickEvent();
     this.pushButtonESC();
     this.deleteObject();
+    this.moveObject();
   }
 
   createObjectElement() {
@@ -19,12 +20,12 @@ class Object {
   // * 단, text의 경우 일반 Object와 다른 점이 있으니, 상속받아서 같은 이름에 다른 메서드를 달아서 바꿔주는 방향으로 가면 될것같다
   // * ex) 크기조절, 글씨체 등 조금 다른 경우가 있다.
 
-  // TODO : 선택했을때, 효과주기
-  addClickEvent() {
-    this.$node.onclick = (e) => {
-      e.target.classList.add("selected");
-    };
-  }
+  // TODO : 선택했을때, 효과주기 -> 드래그할때 클릭하는 경우로 옮겨감
+  // addClickEvent() {
+  //   this.$node.onclick = (e) => {
+  //     e.target.classList.add("selected");
+  //   };
+  // }
 
   // TODO : 선택 취소 -> ESC 누르면 취소
   pushButtonESC() {
@@ -61,8 +62,47 @@ class Object {
 
   // TODO : 이동하기(드래그 앤 드롭)
   moveObject() {
+    // ! 왜 몇번 클릭하면 이거 따라다니냐... 킹받네
+    // * 좌표값의 상한과 하한을 정해줘야 할 것 같음 -> 테두리 밖으로 못 나가도록 -> 사실 나가도 상관없음 -> 왜냐하면 옆에 치워놓고 작업하고 싶을 경우가 있음
+    // * 상의해보기
+    const target = this.$node;
     // 현재 도형의 중앙점 좌표(x, y) 특정좌표(x + 10, y + 10)로 이동하면
     // 현재 도형의 css에서 x방향으로 +10, y방향으로 +10 이런식으로 구현하면 되지 않을까...
+
+    // ? Drag & Drop
+    target.onmousedown = (e) => {
+      let shiftX = e.clientX - target.getBoundingClientRect().left; // clientX : 이벤트가 발생한 곳의 수평좌표
+      let shiftY = e.clientY - target.getBoundingClientRect().top;
+      // e.getBoundingClientRect() : 뷰포트에 상대적인 위치에 대한 적보를 나타내는 객체를 반환
+      // target.getBoundingClientRect() = {x: 296, y: 20, width: 100, height: 100, top: 20, …} -> 이런 형태임
+      // TODO : 선택했을때, 효과주기
+      e.target.classList.add("selected");
+      target.style.position = "absolute";
+      target.style.zIndex = 1000;
+
+      editScreen.append(target);
+
+      function moveAt(pageX, pageY) {
+        target.style.left = pageX - shiftX + "px";
+        target.style.top = pageY - shiftY + "px";
+      }
+
+      moveAt(e.pageX, e.pageY);
+
+      function onMouseMove(e) {
+        moveAt(e.pageX, e.pageY);
+      }
+
+      editScreen.addEventListener("mousemove", onMouseMove);
+
+      target.onmouseup = () => {
+        editScreen.removeEventListener("mousemove", onMouseMove);
+        target.onmouseup = null;
+      };
+    };
+    target.ondragstart = function () {
+      return false;
+    };
   }
 
   render() {
