@@ -1,4 +1,5 @@
 // 클래스 이름에 동사 안들어가기 + 첫글자 대문자로 하기
+// ? 앞에서처럼 클래스 명으로 정의하는게 아니라, extends해서 정의하는 방향으로 가는게 맞는 것 같음
 class Object {
   constructor(name) {
     this.name = name; // 여기서 버튼의 이름을 들고와서 className으로 넣어줘도 괜찮을 듯
